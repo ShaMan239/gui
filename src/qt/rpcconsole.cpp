@@ -706,6 +706,13 @@ void RPCConsole::setClientModel(ClientModel *model, int bestblock_height, int64_
 
         // create ban table context menu
         banTableContextMenu = new QMenu(this);
+        /*: Context menu action to copy the subnet of a banned peer.
+            Subnet is the combination of a peer's IP address and it's Netmask.
+            Depending on the language, the translation of 'IP address' can be subbed in for subnet. */
+        banTableContextMenu->addAction(tr("&Copy subnet"), [this] {
+            GUIUtil::copyEntryData(ui->banlistWidget, BanTableModel::Address, Qt::DisplayRole);
+        });
+        banTableContextMenu->addSeparator();
         banTableContextMenu->addAction(tr("&Unban"), this, &RPCConsole::unbanSelectedNode);
         connect(ui->banlistWidget, &QTableView::customContextMenuRequested, this, &RPCConsole::showBanTableContextMenu);
 
