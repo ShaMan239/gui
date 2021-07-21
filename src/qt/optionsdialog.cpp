@@ -293,12 +293,21 @@ void OptionsDialog::on_resetButton_clicked()
     }
 }
 
+
 void OptionsDialog::on_openBitcoinConfButton_clicked()
 {
     /* explain the purpose of the config file */
-    QMessageBox::information(this, tr("Configuration options"),
-        tr("The configuration file is used to specify advanced user options which override GUI settings. "
-           "Additionally, any command-line options will override this configuration file."));
+    int ret = QMessageBox::information(this, tr("Configuration options"),
+                                       tr("The configuration file is used to specify advanced user options which override GUI settings. "
+                                          "Additionally, any command-line options will override this configuration file."),
+                                       QMessageBox::Cancel | QMessageBox::Ok, QMessageBox::Ok);
+
+    switch (ret) {
+    case QMessageBox::Cancel:
+        return;
+    case QMessageBox::Ok:
+        break;
+    }
 
     /* show an error if there was some problem opening the file */
     if (!GUIUtil::openBitcoinConf())
