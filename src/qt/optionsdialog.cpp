@@ -295,10 +295,19 @@ void OptionsDialog::on_resetButton_clicked()
 
 void OptionsDialog::on_openBitcoinConfButton_clicked()
 {
-    /* explain the purpose of the config file */
-    QMessageBox::information(this, tr("Configuration options"),
-        tr("The configuration file is used to specify advanced user options which override GUI settings. "
-           "Additionally, any command-line options will override this configuration file."));
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+    //: Option file to give custom user configuration instructions.
+    msgBox.setWindowTitle(tr("Configuration options"));
+    /*: The instructions written in this file will overwrite settings of Graphical User Interface.
+        This instructions will themselves be overwritten by instructions given through command-line.*/
+    msgBox.setText(tr("The configuration file is used to specify advanced user options which override GUI settings. "
+                                          "Additionally, any command-line options will override this configuration file."));
+    QPushButton *openButton = msgBox.addButton(tr("Open"), QMessageBox::ActionRole);
+    QPushButton *closeButton = msgBox.addButton(tr("Close"), QMessageBox::RejectRole);
+    msgBox.exec();
+
+    if(msgBox.clickedButton() != openButton) return;
 
     /* show an error if there was some problem opening the file */
     if (!GUIUtil::openBitcoinConf())
