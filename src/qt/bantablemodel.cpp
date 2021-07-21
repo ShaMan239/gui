@@ -6,6 +6,7 @@
 
 #include <interfaces/node.h>
 #include <net_types.h> // For banmap_t
+#include <qt/guiconstants.h>
 
 #include <utility>
 
@@ -13,6 +14,8 @@
 #include <QList>
 #include <QLocale>
 #include <QModelIndex>
+#include <QString>
+#include <QTimer>
 #include <QVariant>
 
 bool BannedNodeLessThan::operator()(const CCombinedBan& left, const CCombinedBan& right) const
@@ -26,7 +29,13 @@ bool BannedNodeLessThan::operator()(const CCombinedBan& left, const CCombinedBan
     switch (static_cast<BanTableModel::ColumnIndex>(column)) {
     case BanTableModel::Address:
         return pLeft->subnet.ToString().compare(pRight->subnet.ToString()) < 0;
+    case BanTableModel::Bancreate:
+        return pLeft->banEntry.nCreateTime < pRight->banEntry.nCreateTime;
     case BanTableModel::Bantime:
+        return pLeft->banEntry.nBanUntil < pRight->banEntry.nBanUntil;
+    case BanTableModel::Bandur:
+        return (pLeft->banEntry.nBanUntil - pLeft->banEntry.nCreateTime) < (pRight->banEntry.nBanUntil - pRight->banEntry.nCreateTime);
+    case BanTableModel::remain:
         return pLeft->banEntry.nBanUntil < pRight->banEntry.nBanUntil;
     } // no default case, so the compiler can warn about missing cases
     assert(false);
@@ -76,13 +85,49 @@ public:
 
         return nullptr;
     }
+
+    /** Function to add the functionality of displaying only two hightest degree
+        of non-zero time value */
+    QString remainingTime(qint64 seconds)
+    {
+        const qint64 arr1[] = {31536000, 2592000, 86400, 3600, 60, 1};
+        const QString arr2[] = {"Year", "Month", "Day", "Hour", "Minute", "Second"};
+        const QString arr3[] = {"Years", "Months", "Days", "Hours", "Minutes", "Seconds"};
+        int n_terms = 6;
+        QString result = QString();
+        int degree = 0;
+
+        for (int i = 0; i < n_terms; i++) {
+            if (degree > 1) {
+                break;
+            }
+            qint64 temp = seconds / arr1[i];
+            if (temp > 0) {
+                if (temp == 1)
+                    result += QString::fromStdString(" ") + QString::number(temp) + QString::fromStdString(" ") + arr2[i] + QString::fromStdString(",");
+                else
+                    result += QString::fromStdString(" ") + QString::number(temp) + QString::fromStdString(" ") + arr3[i] + QString::fromStdString(",");
+                degree++;
+            }
+            seconds %= arr1[i];
+        }
+        if(!result.isEmpty())
+            result.chop(1);
+        return result;
+    }
 };
 
 BanTableModel::BanTableModel(interfaces::Node& node, QObject* parent) :
     QAbstractTableModel(parent),
-    m_node(node)
+    m_node(node),
+    timer(nullptr)
 {
-    columns << tr("IP/Netmask") << tr("Banned Until");
+    // set up timer for auto refresh
+    timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &BanTableModel::refresh);
+    timer->setInterval(MODEL_UPDATE_DELAY);
+
+    columns << tr("IP/Netmask") << tr("Ban Created") << tr("Banned Until") << tr("Duration") << tr("Time Remaining");
     priv.reset(new BanTablePriv());
 
     // load initial data
@@ -93,6 +138,17 @@ BanTableModel::~BanTableModel()
 {
     // Intentionally left empty
 }
+
+void BanTableModel::startAutoRefresh()
+{
+    timer->start();
+}
+
+void BanTableModel::stopAutoRefresh()
+{
+    timer->stop();
+}
+
 
 int BanTableModel::rowCount(const QModelIndex &parent) const
 {
@@ -110,6 +166,7 @@ int BanTableModel::columnCount(const QModelIndex &parent) const
     return columns.length();
 }
 
+
 QVariant BanTableModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid())
@@ -122,16 +179,44 @@ QVariant BanTableModel::data(const QModelIndex &index, int role) const
         switch (column) {
         case Address:
             return QString::fromStdString(rec->subnet.ToString());
-        case Bantime:
+        case Bancreate: {
+            QDateTime date = QDateTime::fromMSecsSinceEpoch(0);
+            date = date.addSecs(rec->banEntry.nCreateTime);
+            return QLocale::system().toString(date, QLocale::LongFormat);
+        }
+        case Bantime: {
             QDateTime date = QDateTime::fromMSecsSinceEpoch(0);
             date = date.addSecs(rec->banEntry.nBanUntil);
             return QLocale::system().toString(date, QLocale::LongFormat);
+        }
+        case Bandur: {
+            QDateTime date = QDateTime::fromMSecsSinceEpoch(0);
+            date = date.addSecs(rec->banEntry.nBanUntil - rec->banEntry.nCreateTime);
+            return priv->remainingTime(date.toSecsSinceEpoch());
+        }
+        case remain: {
+            const int64_t current_time{GetTimeSeconds()};
+            QDateTime date = QDateTime::fromMSecsSinceEpoch(0);
+            date = date.addSecs(rec->banEntry.nBanUntil - current_time);
+            return priv->remainingTime(date.toSecsSinceEpoch());
+        }
         } // no default case, so the compiler can warn about missing cases
         assert(false);
+    } else if (role == Qt::TextAlignmentRole) {
+        switch (column) {
+        case Address:
+        case Bancreate:
+        case Bantime:
+        case Bandur:
+            return QVariant(Qt::AlignCenter);
+        case remain:
+            return QVariant(Qt::AlignCenter);
+        }
     }
 
     return QVariant();
 }
+
 
 QVariant BanTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {

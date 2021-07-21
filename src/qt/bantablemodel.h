@@ -18,6 +18,10 @@ namespace interfaces {
     class Node;
 }
 
+QT_BEGIN_NAMESPACE
+class QTimer;
+QT_END_NAMESPACE
+
 struct CCombinedBan {
     CSubNet subnet;
     CBanEntry banEntry;
@@ -51,7 +55,10 @@ public:
 
     enum ColumnIndex {
         Address = 0,
-        Bantime = 1
+        Bancreate,
+        Bantime,
+        Bandur,
+        remain
     };
 
     /** @name Methods overridden from QAbstractTableModel
@@ -74,6 +81,7 @@ private:
     interfaces::Node& m_node;
     QStringList columns;
     std::unique_ptr<BanTablePriv> priv;
+    QTimer* timer;
 };
 
 #endif // BITCOIN_QT_BANTABLEMODEL_H

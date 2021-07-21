@@ -695,12 +695,15 @@ void RPCConsole::setClientModel(ClientModel *model, int bestblock_height, int64_
         ui->banlistWidget->setModel(model->getBanTableModel());
         ui->banlistWidget->verticalHeader()->hide();
         ui->banlistWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-        ui->banlistWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+        ui->banlistWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
         ui->banlistWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 
         if (!ui->banlistWidget->horizontalHeader()->restoreState(m_banlist_widget_header_state)) {
             ui->banlistWidget->setColumnWidth(BanTableModel::Address, BANSUBNET_COLUMN_WIDTH);
+            ui->banlistWidget->setColumnWidth(BanTableModel::Bancreate, BANCREATE_COLUMN_WIDTH);
             ui->banlistWidget->setColumnWidth(BanTableModel::Bantime, BANTIME_COLUMN_WIDTH);
+            ui->banlistWidget->setColumnWidth(BanTableModel::Bandur, BANDUR_COLUMN_WIDTH);
+            ui->banlistWidget->setColumnWidth(BanTableModel::remain, REMAIN_COLUMN_WIDTH);
         }
         ui->banlistWidget->horizontalHeader()->setStretchLastSection(true);
 
@@ -1203,6 +1206,11 @@ void RPCConsole::showEvent(QShowEvent *event)
 
     // start PeerTableModel auto refresh
     clientModel->getPeerTableModel()->startAutoRefresh();
+
+    if (!clientModel || !clientModel->getBanTableModel())
+        return;
+
+    clientModel->getBanTableModel()->startAutoRefresh();
 }
 
 void RPCConsole::hideEvent(QHideEvent *event)
@@ -1219,6 +1227,11 @@ void RPCConsole::hideEvent(QHideEvent *event)
 
     // stop PeerTableModel auto refresh
     clientModel->getPeerTableModel()->stopAutoRefresh();
+
+    if (!clientModel || !clientModel->getBanTableModel())
+        return;
+
+    clientModel->getBanTableModel()->stopAutoRefresh();
 }
 
 void RPCConsole::showPeersTableContextMenu(const QPoint& point)
