@@ -335,7 +335,7 @@ void OverviewPage::showOutOfSyncWarning(bool fShow)
 void OverviewPage::setMonospacedFont(bool use_embedded_font)
 {
     QFont f = GUIUtil::fixedPitchFont(use_embedded_font);
-    f.setWeight(QFont::Bold);
+    f.setWeight(QFont::Normal);
     ui->labelBalance->setFont(f);
     ui->labelUnconfirmed->setFont(f);
     ui->labelImmature->setFont(f);

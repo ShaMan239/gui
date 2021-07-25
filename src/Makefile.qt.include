@@ -167,7 +167,8 @@ BITCOIN_QT_H = \
   qt/winshutdownmonitor.h
 
 RES_FONTS = \
-  qt/res/fonts/RobotoMono-Bold.ttf
+  qt/res/fonts/RobotoMono-Bold.ttf \
+  qt/res/fonts/RobotoMono-Regular.ttf
 
 RES_ICONS = \
   qt/res/icons/add.png \
