@@ -50,6 +50,7 @@ private Q_SLOTS:
 protected:
     bool event(QEvent *event) override;
     bool eventFilter(QObject *object, QEvent *event) override;
+    QString passStrengthChecker(SecureString pass);
 };
 
 #endif // BITCOIN_QT_ASKPASSPHRASEDIALOG_H

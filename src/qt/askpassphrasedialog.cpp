@@ -113,6 +113,12 @@ void AskPassphraseDialog::accept()
                  QMessageBox::Cancel);
         if(retval == QMessageBox::Yes)
         {
+            if(passStrengthChecker(newpass1) == QString::fromStdString("Weak"))
+            {
+                QMessageBox::critical(this, tr("Wallet encryption failed"),
+                                     tr("Set a Stronger Password. Try adding special characters, and Upper and Lower Case character in the password"));
+                break;
+            }
             if(newpass1 == newpass2)
             {
                 QString encryption_reminder = tr("Remember that encrypting your wallet cannot fully protect "
@@ -272,4 +278,36 @@ void AskPassphraseDialog::secureClearPassFields()
     SecureClearQLineEdit(ui->passEdit1);
     SecureClearQLineEdit(ui->passEdit2);
     SecureClearQLineEdit(ui->passEdit3);
+}
+
+QString AskPassphraseDialog::passStrengthChecker(SecureString input)
+{
+    // std::string input = pass.ToUnsecureString();
+    int n = input.length();
+    QString result;
+    bool hasLower = false, hasUpper = false;
+    bool hasDigit = false, specialChar = false;
+    std::string normalChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ";
+    for (int i = 0; i < n; i++) {
+      if (islower(input[i]))
+         hasLower = true;
+      if (isupper(input[i]))
+         hasUpper = true;
+      if (isdigit(input[i]))
+         hasDigit = true;
+      size_t special = input.find_first_not_of(normalChars);
+      if (special != std::string::npos)
+         specialChar = true;
+    }
+    // Strength of password
+    if (hasLower && hasUpper && hasDigit &&
+      specialChar && (n >= 8))
+      result = QString::fromStdString("Strong");
+    else if ((hasLower || hasUpper) &&
+      specialChar && (n >= 6))
+      result = QString::fromStdString("Moderate");
+    else
+      result = QString::fromStdString("Weak");
+
+    return result;
 }
