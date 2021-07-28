@@ -486,7 +486,13 @@ int GuiMain(int argc, char* argv[])
 #endif
 
     BitcoinApplication app;
+    QFontDatabase::addApplicationFont(":/fonts/monospace-bold");
     QFontDatabase::addApplicationFont(":/fonts/monospace-regular");
+
+    // QFont font("Roboto Mono");
+    // font.setStyleHint(QFont::Monospace);
+    // QApplication::setFont(font);
+
 
     /// 2. Parse command-line options. We do this after qt in order to show an error if there are problems parsing these
     // Command-line options take precedence:

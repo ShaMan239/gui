@@ -72,7 +72,7 @@ bool QRImageWidget::setQR(const QString& data, const QString& text)
             QRect paddedRect = qrAddrImage.rect();
             paddedRect.setHeight(QR_IMAGE_SIZE + QR_IMAGE_TEXT_MARGIN);
 
-            QFont font = GUIUtil::fixedPitchFont();
+            QFont font = GUIUtil::fixedPitchFont(true);
             font.setStretch(QFont::SemiCondensed);
             font.setLetterSpacing(QFont::AbsoluteSpacing, 1);
             const qreal font_size = GUIUtil::calculateIdealFontSize(paddedRect.width() - 2 * QR_IMAGE_TEXT_MARGIN, text, font);

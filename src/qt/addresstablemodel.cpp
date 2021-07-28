@@ -216,7 +216,7 @@ QVariant AddressTableModel::data(const QModelIndex &index, int role) const
         case Label:
             return QFont();
         case Address:
-            return GUIUtil::fixedPitchFont();
+            return GUIUtil::fixedPitchFont(true);
         } // no default case, so the compiler can warn about missing cases
         assert(false);
     } else if (role == TypeRole) {
