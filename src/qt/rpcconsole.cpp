@@ -43,12 +43,14 @@
 #include <QLocale>
 #include <QMenu>
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QScreen>
 #include <QScrollBar>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
 #include <QStyledItemDelegate>
+#include <QSyntaxHighlighter>
 #include <QTime>
 #include <QTimer>
 #include <QVariant>
@@ -146,6 +148,41 @@ public:
         // from the next column to the right.
         return value.toString() + QLatin1String("   ");
     }
+};
+
+class SearchHighLight : public QSyntaxHighlighter
+{
+    Q_OBJECT
+public:
+    explicit SearchHighLight(QTextDocument* parent = nullptr)
+        : QSyntaxHighlighter(parent)
+    {
+        // Set the backlight color
+        m_format.setBackground(Qt::green);
+    }
+
+    void searchText(const QString& text)
+    {
+        // Set the text as a regular expression.
+        m_pattern = QRegularExpression(text);
+        rehighlight(); // Restart the backlight
+    }
+
+protected:
+    virtual void highlightBlock(const QString& text) override
+    {
+        // Using a regular expression, we find all matches.
+        QRegularExpressionMatchIterator matchIterator = m_pattern.globalMatch(text);
+        while (matchIterator.hasNext()) {
+            // Highlight all matches
+            QRegularExpressionMatch match = matchIterator.next();
+            setFormat(match.capturedStart(), match.capturedLength(), m_format);
+        }
+    }
+
+private:
+    QRegularExpression m_pattern; // Regular expression to search for, in our case, this word or text
+    QTextCharFormat m_format;     // Text formatting, highlighting
 };
 
 #include <qt/rpcconsole.moc>
@@ -515,6 +552,9 @@ RPCConsole::RPCConsole(interfaces::Node& node, const PlatformStyle *_platformSty
     ui->blocksDir->setToolTip(ui->blocksDir->toolTip().arg(QString(nonbreaking_hyphen) + "blocksdir"));
     ui->openDebugLogfileButton->setToolTip(ui->openDebugLogfileButton->toolTip().arg(PACKAGE_NAME));
 
+    // Create and initialize search highlighting
+    m_searchHighLight = new SearchHighLight(ui->messagesWidget->document());
+
     if (platformStyle->getImagesOnButtons()) {
         ui->openDebugLogfileButton->setIcon(platformStyle->SingleColorIcon(":/icons/export"));
     }
@@ -543,6 +583,8 @@ RPCConsole::RPCConsole(interfaces::Node& node, const PlatformStyle *_platformSty
     connect(ui->fontBiggerButton, &QAbstractButton::clicked, this, &RPCConsole::fontBigger);
     connect(ui->fontSmallerButton, &QAbstractButton::clicked, this, &RPCConsole::fontSmaller);
     connect(ui->btnClearTrafficGraph, &QPushButton::clicked, ui->trafficGraph, &TrafficGraphWidget::clear);
+    // We connect the signal of the button to the slots for calling the search.
+    connect(ui->searchBar, &QLineEdit::textChanged, this, &RPCConsole::onSearchText);
 
     // disable the wallet selector by default
     ui->WalletSelector->setVisible(false);
@@ -875,6 +917,12 @@ void RPCConsole::clear(bool keep_prompt)
                  "<span>");
 
     message(CMD_REPLY, welcome_message, true);
+}
+
+void RPCConsole::onSearchText()
+{
+    // We load the text for search in syntax highlighting
+    m_searchHighLight->searchText(ui->searchBar->text());
 }
 
 void RPCConsole::keyPressEvent(QKeyEvent *event)
