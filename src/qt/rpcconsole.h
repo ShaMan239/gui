@@ -34,6 +34,8 @@ class QMenu;
 class QItemSelection;
 QT_END_NAMESPACE
 
+class SearchHighLight;
+
 /** Local Bitcoin RPC console. */
 class RPCConsole: public QWidget
 {
@@ -141,6 +143,8 @@ private:
 
     void startExecutor();
     void setTrafficGraphRange(int mins);
+    void onSearchText();
+    void onIndexClean();
 
     enum ColumnWidths
     {
@@ -178,6 +182,9 @@ private:
     QString TimeDurationField(uint64_t time_now, uint64_t time_at_event) const {
         return time_at_event ? GUIUtil::formatDurationStr(time_now - time_at_event) : tr("Never");
     }
+
+    // Inherited class for creating syntax highlighting logic
+    SearchHighLight* m_searchHighLight;
 
 private Q_SLOTS:
     void updateAlerts(const QString& warnings);
