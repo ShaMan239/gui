@@ -184,12 +184,13 @@ WalletControllerActivity::WalletControllerActivity(WalletController* wallet_cont
     connect(this, &WalletControllerActivity::finished, this, &QObject::deleteLater);
 }
 
-void WalletControllerActivity::showProgressDialog(const QString& label_text)
+void WalletControllerActivity::showProgressDialog(const QString& title_text, const QString& label_text)
 {
     auto progress_dialog = new QProgressDialog(m_parent_widget);
     progress_dialog->setAttribute(Qt::WA_DeleteOnClose);
     connect(this, &WalletControllerActivity::finished, progress_dialog, &QWidget::close);
 
+    m_progress_dialog->setWindowTitle(title_text);
     progress_dialog->setLabelText(label_text);
     progress_dialog->setRange(0, 0);
     progress_dialog->setCancelButton(nullptr);
@@ -231,7 +232,11 @@ void CreateWalletActivity::askPassphrase()
 
 void CreateWalletActivity::createWallet()
 {
-    showProgressDialog(tr("Creating Wallet <b>%1</b>…").arg(m_create_wallet_dialog->walletName().toHtmlEscaped()));
+    showProgressDialog(
+        //: Title of progress window when Create Wallet action is selected.
+        tr("Create Wallet"),
+        //: Describing what is being done in background.
+        tr("Creating Wallet <b>%1</b>…").arg(m_create_wallet_dialog->walletName().toHtmlEscaped()));
 
     std::string name = m_create_wallet_dialog->walletName().toStdString();
     uint64_t flags = 0;
@@ -322,7 +327,11 @@ void OpenWalletActivity::open(const std::string& path)
 {
     QString name = path.empty() ? QString("["+tr("default wallet")+"]") : QString::fromStdString(path);
 
-    showProgressDialog(tr("Opening Wallet <b>%1</b>…").arg(name.toHtmlEscaped()));
+    showProgressDialog(
+        //: Title of progress window when Open Wallet action is selected.
+        tr("Open Wallet"),
+        //: Describing what is being done in the background.
+        tr("Opening Wallet <b>%1</b>…").arg(name.toHtmlEscaped()));
 
     QTimer::singleShot(0, worker(), [this, path] {
         std::unique_ptr<interfaces::Wallet> wallet = node().walletClient().loadWallet(path, m_error_message, m_warning_message);
