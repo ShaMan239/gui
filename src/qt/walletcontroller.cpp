@@ -203,6 +203,7 @@ void WalletControllerActivity::showProgressDialog(const QString& label_text)
     assert(!m_progress_dialog);
     m_progress_dialog = new QProgressDialog(m_parent_widget);
 
+    m_progress_dialog->setWindowTitle(PACKAGE_NAME);
     m_progress_dialog->setLabelText(label_text);
     m_progress_dialog->setRange(0, 0);
     m_progress_dialog->setCancelButton(nullptr);
