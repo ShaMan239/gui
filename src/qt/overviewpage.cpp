@@ -91,7 +91,9 @@ public:
         }
         else
         {
-            foreground = option.palette.color(QPalette::Text);
+            QColor bg_color = QPalette::Window;
+            qreal lightness = bg_color.redF() + bg_color.greenF() + bg_color.blueF();
+            foreground = (lightness < 1.5) ? COLOR_CONFIRMED_LIGHT : COLOR_CONFIRMED_DARK;
         }
         painter->setPen(foreground);
         QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true, BitcoinUnits::SeparatorStyle::ALWAYS);
