@@ -750,6 +750,9 @@ void RPCConsole::setClientModel(ClientModel *model, int bestblock_height, int64_
         ui->startupTime->setText(model->formatClientStartupTime());
         ui->networkName->setText(QString::fromStdString(Params().NetworkIDString()));
 
+        //Setup Peer and Ban Table Splitter
+        ui->tableSplitter->setChildrenCollapsible(false);
+
         //Setup autocomplete and attach it
         QStringList wordList;
         std::vector<std::string> commandList = m_node.listRpcCommands();
