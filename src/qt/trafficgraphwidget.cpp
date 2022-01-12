@@ -11,6 +11,7 @@
 #include <QColor>
 #include <QTimer>
 
+#include <chrono>
 #include <cmath>
 
 #define DESIRED_SAMPLES         800
@@ -18,11 +19,13 @@
 #define XMARGIN                 10
 #define YMARGIN                 10
 
+using namespace std::chrono_literals;
+
 TrafficGraphWidget::TrafficGraphWidget(QWidget *parent) :
     QWidget(parent),
     timer(nullptr),
     fMax(0.0f),
-    nMins(0),
+    nMins(0min),
     vSamplesIn(),
     vSamplesOut(),
     nLastBytesIn(0),
@@ -42,7 +45,7 @@ void TrafficGraphWidget::setClientModel(ClientModel *model)
     }
 }
 
-int TrafficGraphWidget::getGraphRangeMins() const
+std::chrono::minutes TrafficGraphWidget::getGraphRangeMins() const
 {
     return nMins;
 }
@@ -155,8 +158,8 @@ void TrafficGraphWidget::updateRates()
 
 void TrafficGraphWidget::setGraphRangeMins(int mins)
 {
-    nMins = mins;
-    int msecsPerSample = nMins * 60 * 1000 / DESIRED_SAMPLES;
+    nMins = std::chrono::minutes(mins);
+    auto msecsPerSample = nMins * 60 * 1000 / DESIRED_SAMPLES;
     timer->stop();
     timer->setInterval(msecsPerSample);
 

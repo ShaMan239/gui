@@ -8,6 +8,8 @@
 #include <QWidget>
 #include <QQueue>
 
+#include <chrono>
+
 class ClientModel;
 
 QT_BEGIN_NAMESPACE
@@ -22,7 +24,7 @@ class TrafficGraphWidget : public QWidget
 public:
     explicit TrafficGraphWidget(QWidget *parent = nullptr);
     void setClientModel(ClientModel *model);
-    int getGraphRangeMins() const;
+    std::chrono::minutes getGraphRangeMins() const;
 
 protected:
     void paintEvent(QPaintEvent *) override;
@@ -37,7 +39,7 @@ private:
 
     QTimer *timer;
     float fMax;
-    int nMins;
+    std::chrono::minutes nMins;
     QQueue<float> vSamplesIn;
     QQueue<float> vSamplesOut;
     quint64 nLastBytesIn;
