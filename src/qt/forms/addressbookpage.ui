@@ -148,7 +148,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>C&amp;lose</string>
+        <string>&amp;Close</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
